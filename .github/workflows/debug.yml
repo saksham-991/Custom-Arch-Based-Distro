@@ -1,0 +1,24 @@
+name: Debug Runner
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Keep alive (true/false)'
+        default: 'true'
+        required: true
+
+jobs:
+  debug:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup SSH
+        run: |
+          sudo apt-get install -y openssh-server
+          echo "runneradmin:password123" | sudo chpasswd
+          sudo service ssh start
+          curl -Lo playit https://github.com/playit-cloud/playit-agent/releases/latest/download/playit-linux-x86_64
+          chmod +x playit
+          ./playit --add-tunnel ssh 22 tcp &
+          sleep 10
+          echo "Tunnel running. Waiting for manual kill."
+          while [ "${{ github.event.inputs.action }}" == "true" ]; do sleep 60; done
