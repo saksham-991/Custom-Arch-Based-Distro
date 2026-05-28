@@ -1,0 +1,33 @@
+name: Stable SSH Debugging
+
+on: [push]
+
+jobs:
+  debug-runner:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 1. Connect the runner to your Tailscale tailnet
+      - name: Tailscale Connect
+        uses: tailscale/tailscale-action@v2
+        with:
+          authkey: ${{ secrets.TAILSCALE_AUTHKEY }}
+          # Ensures the runner is reachable via its Tailscale IP
+          ssh: true
+
+      # 2. Allow SSH access to the runner
+      # This step sets a temporary password for the runner user
+      - name: Setup SSH Access
+        run: |
+          echo "runner:password123" | sudo chpasswd
+          sudo sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/' /etc/ssh/sshd_config
+          sudo systemctl restart ssh
+
+      # 3. Keep the job alive for debugging
+      - name: Debug Session
+        run: |
+          echo "Connect via: ssh runner@$(tailscale ip -4)"
+          # Keep the runner alive for 30 minutes
+          sleep 1800
