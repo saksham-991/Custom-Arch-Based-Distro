@@ -1,0 +1,11 @@
+name: SSH Session
+
+on:
+  workflow_dispatch:
+
+jobs:
+  ssh:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Start tmate SSH session
+        uses: mxschmitt/action-tmate@v3
